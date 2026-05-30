@@ -1,0 +1,221 @@
+# ==========================
+# Виртуальные окружения
+# ==========================
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# ==========================
+# Python (байт-код, кэш, отладка)
+# ==========================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+.eggs/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+*.egg
+pip-wheel-metadata/
+share/python-wheels/
+
+# ==========================
+# Файлы отладки и профилирования
+# ==========================
+*.log
+*.pdb
+*.prof
+*.coverage
+.coverage.*
+.coverage
+htmlcov/
+.tox/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pytype/
+
+# ==========================
+# Файлы данных (БД, временные файлы)
+# ==========================
+data/
+*.db
+*.sqlite
+*.sqlite3
+*.bak
+*.tmp
+*.temp
+
+# ==========================
+# Логи приложения
+# ==========================
+logs/
+*.log
+log/
+
+# ==========================
+# Сборки клиентов (PyInstaller)
+# ==========================
+dist/
+build/
+*.exe
+*.spec
+*.manifest
+*.pyd
+*.dll
+*.so
+
+# ==========================
+# IDE и редакторы
+# ==========================
+# PyCharm
+.idea/
+*.iml
+*.iws
+*.ipr
+.idea_modules/
+.vscode/
+
+# VSCode
+.vscode/
+*.code-workspace
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Eclipse
+.project
+.classpath
+.pydevproject
+.settings/
+
+# Spyder
+.spyderproject
+.spyproject
+.ropeproject
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+
+# ==========================
+# Переменные окружения и конфиги с секретами
+# ==========================
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.crt
+
+# ==========================
+# Windows
+# ==========================
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msm
+*.msp
+
+# ==========================
+# MacOS
+# ==========================
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+*.app
+
+# ==========================
+# Linux
+# ==========================
+*~
+.directory
+*.swp
+*.swo
+*.swn
+
+# ==========================
+# Документация временная
+# ==========================
+*.aux
+*.bbl
+*.blg
+*.brf
+*.dvi
+*.fdb_latexmk
+*.fls
+*.lof
+*.log
+*.lot
+*.nav
+*.out
+*.pdfsync
+*.run.xml
+*.snm
+*.synctex.gz
+*.toc
+*.vrb
+*.xdv
+
+# ==========================
+# Файлы проектов (утилиты)
+# ==========================
+*.pyproj
+*.user
+*.suo
+*.sln
+*.cache
+*.pid
+*.seed
+
+# ==========================
+# Jupyter Notebook (если понадобится)
+# ==========================
+.ipynb_checkpoints/
+*.ipynb
+
+# ==========================
+# Файлы отчётов и экспорта (временно)
+# ==========================
+*.xlsx
+*.xls
+*.csv
+!tests/fixtures/*.csv
+!fixtures/*.csv
+
+# ==========================
+# Временные файлы SQLite и Alembic
+# ==========================
+alembic/versions/*.pyc
+*.sqlite-journal
+
+# ==========================
+# PyInstaller: удаляем временные папки
+# ==========================
+*.spec
+build/
+release/
