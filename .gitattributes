@@ -1,0 +1,19 @@
+# Auto detect text files
+* text=auto
+
+# Python files -> LF
+*.py text eol=lf
+
+# Batch files -> CRLF (Windows)
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Shell scripts -> LF
+*.sh text eol=lf
+
+# Config files -> LF
+*.yml text eol=lf
+*.yaml text eol=lf
+*.toml text eol=lf
+*.json text eol=lf
+*.ini text eol=lf

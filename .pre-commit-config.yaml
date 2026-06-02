@@ -1,0 +1,25 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.4.4
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff-format
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.10.0
+    hooks:
+      - id: mypy
+        additional_dependencies: [types-all]
+        exclude: ^(alembic/|tests/|clients/)
+        args: [--ignore-missing-imports]
+
+  - repo: local
+    hooks:
+      - id: pytest-unit
+        name: pytest (unit)
+        entry: pytest backend/tests/unit -q --tb=short
+        language: system
+        pass_filenames: false
+        always_run: true
+        files: ^backend/
