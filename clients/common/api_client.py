@@ -10,6 +10,7 @@ class APIClient:
     def _url(self, path: str) -> str:
         return f"{self.base_url}{path}"
 
+    # Projects
     def get_projects(self) -> List[Dict]:
         response = self.client.get(self._url("/projects/"))
         response.raise_for_status()
@@ -20,6 +21,7 @@ class APIClient:
         response.raise_for_status()
         return response.json()
 
+    # ECRs
     def get_ecr_list(self, project_id: int, status: Optional[str] = None) -> List[Dict]:
         url = self._url(f"/projects/{project_id}/ecr/")
         if status:
@@ -52,6 +54,7 @@ class APIClient:
         response.raise_for_status()
         return response.json()
 
+    # Load Lines
     def get_ecr_lines(self, project_id: int, ecr_id: int) -> List[Dict]:
         response = self.client.get(self._url(f"/projects/{project_id}/ecr/{ecr_id}/lines"))
         response.raise_for_status()
@@ -86,8 +89,45 @@ class APIClient:
         response.raise_for_status()
         return response.json()
 
+    # Reports
+    def get_aggregated_tree(self, project_id: int) -> Dict:
+        response = self.client.get(self._url(f"/projects/{project_id}/reports/aggregated-tree"))
+        response.raise_for_status()
+        return response.json()
+
     def get_lightweight(self, project_id: int) -> Dict:
         response = self.client.get(self._url(f"/projects/{project_id}/reports/lightweight"))
+        response.raise_for_status()
+        return response.json()
+
+    def get_deadweight(self, project_id: int, percentages: Dict[str, int]) -> Dict:
+        params = {f"pct_{k}": v for k, v in percentages.items()}
+        response = self.client.get(
+            self._url(f"/projects/{project_id}/reports/deadweight"),
+            params=params
+        )
+        response.raise_for_status()
+        return response.json()
+
+    def get_total_displacement(self, project_id: int, percentages: Dict[str, int], include_volume: bool = False) -> Dict:
+        params = {f"pct_{k}": v for k, v in percentages.items()}
+        params["include_volume"] = include_volume
+        response = self.client.get(
+            self._url(f"/projects/{project_id}/reports/total-displacement"),
+            params=params
+        )
+        response.raise_for_status()
+        return response.json()
+
+    # Codes
+    def get_codes(self) -> List[Dict]:
+        response = self.client.get(self._url("/codes/"))
+        response.raise_for_status()
+        return response.json()
+
+    # Load Cases
+    def get_load_cases(self) -> List[Dict]:
+        response = self.client.get(self._url("/load-cases/"))
         response.raise_for_status()
         return response.json()
 
