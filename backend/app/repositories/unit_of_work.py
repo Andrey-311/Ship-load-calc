@@ -1,20 +1,18 @@
-"""Unit of Work для управления транзакциями."""
+"""Unit of Work для управления транзакциями (асинхронная версия)."""
 
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.repositories.sqlalchemy import (
-    SQLAlchemyProjectRepository,
-    SQLAlchemyECRRepository,
-    SQLAlchemyLoadLineRepository,
-    SQLAlchemyCodeRepository,
-    SQLAlchemyLoadCaseTemplateRepository,
-)
+from app.repositories.sqlalchemy.project_repository import SQLAlchemyProjectRepository
+from app.repositories.sqlalchemy.ecr_repository import SQLAlchemyECRRepository
+from app.repositories.sqlalchemy.load_line_repository import SQLAlchemyLoadLineRepository
+from app.repositories.sqlalchemy.code_repository import SQLAlchemyCodeRepository
+from app.repositories.sqlalchemy.load_case_template_repository import SQLAlchemyLoadCaseTemplateRepository
 
 
 class UnitOfWork:
     """Объединяет репозитории в одну транзакцию."""
 
-    def __init__(self, session: Session):
+    def __init__(self, session: AsyncSession):
         self.session = session
         self.projects = SQLAlchemyProjectRepository(session)
         self.ecrs = SQLAlchemyECRRepository(session)
@@ -22,23 +20,23 @@ class UnitOfWork:
         self.codes = SQLAlchemyCodeRepository(session)
         self.templates = SQLAlchemyLoadCaseTemplateRepository(session)
 
-    def commit(self):
+    async def commit(self):
         """Зафиксировать транзакцию."""
-        self.session.commit()
+        await self.session.commit()
 
-    def rollback(self):
+    async def rollback(self):
         """Откатить транзакцию."""
-        self.session.rollback()
+        await self.session.rollback()
 
-    def flush(self):
+    async def flush(self):
         """Сбросить изменения в БД без коммита."""
-        self.session.flush()
+        await self.session.flush()
 
-    def __enter__(self):
+    async def __aenter__(self):
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
         if exc_type is None:
-            self.commit()
+            await self.commit()
         else:
-            self.rollback()
+            await self.rollback()

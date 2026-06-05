@@ -1,21 +1,14 @@
 """Dependency Injection для FastAPI."""
 
 from fastapi import Depends
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import SessionLocal
+from app.core.database import get_db
 from app.repositories.unit_of_work import UnitOfWork
 
 
-def get_db():
-    """Получить сессию БД."""
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-def get_uow(db: Session = Depends(get_db)):
+async def get_uow(
+    db: AsyncSession = Depends(get_db)
+) -> UnitOfWork:
     """Получить Unit of Work."""
     return UnitOfWork(db)

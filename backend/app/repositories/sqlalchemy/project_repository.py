@@ -1,42 +1,47 @@
-"""SQLAlchemy реализация репозитория проектов."""
+"""SQLAlchemy реализация репозитория проектов (асинхронная)."""
 
 from typing import List, Optional
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, update, delete
 
 from app.models.project import Project
 from app.repositories.interfaces import IProjectRepository
 
 
 class SQLAlchemyProjectRepository(IProjectRepository):
-    """Репозиторий проектов на SQLAlchemy."""
+    """Репозиторий проектов на SQLAlchemy (асинхронный)."""
 
-    def __init__(self, session: Session):
+    def __init__(self, session: AsyncSession):
         self.session = session
 
     async def create(self, project: Project) -> Project:
         self.session.add(project)
-        self.session.flush()
+        await self.session.flush()
+        await self.session.refresh(project)
         return project
 
     async def get_by_id(self, project_id: int) -> Optional[Project]:
-        return self.session.query(Project).filter(Project.id == project_id).first()
+        result = await self.session.execute(
+            select(Project).where(Project.id == project_id)
+        )
+        return result.scalar_one_or_none()
 
     async def get_all(self) -> List[Project]:
-        return self.session.query(Project).all()
+        result = await self.session.execute(select(Project))
+        return result.scalars().all()
 
     async def update(self, project_id: int, **kwargs) -> Optional[Project]:
-        project = await self.get_by_id(project_id)
-        if project:
-            for key, value in kwargs.items():
-                if hasattr(project, key):
-                    setattr(project, key, value)
-            self.session.flush()
-        return project
+        await self.session.execute(
+            update(Project)
+            .where(Project.id == project_id)
+            .values(**kwargs)
+        )
+        await self.session.flush()
+        return await self.get_by_id(project_id)
 
     async def delete(self, project_id: int) -> bool:
-        project = await self.get_by_id(project_id)
-        if project:
-            self.session.delete(project)
-            self.session.flush()
-            return True
-        return False
+        result = await self.session.execute(
+            delete(Project).where(Project.id == project_id)
+        )
+        await self.session.flush()
+        return result.rowcount > 0

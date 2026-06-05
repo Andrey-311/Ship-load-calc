@@ -1,20 +1,25 @@
-"""Database connection and session management (синхронная версия)."""
+"""Database connection and session management (асинхронная версия с aiosqlite)."""
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from typing import AsyncGenerator
+from sqlalchemy.ext.asyncio import (
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine
+)
+from sqlalchemy.orm import declarative_base
 
 from .config import settings
 
-# Синхронный engine
-engine = create_engine(
+# Асинхронный engine с aiosqlite
+engine = create_async_engine(
     settings.database_url,
     echo=settings.debug,
 )
 
-SessionLocal = sessionmaker(
+AsyncSessionLocal = async_sessionmaker(
     engine,
-    autocommit=False,
-    autoflush=False,
+    class_=AsyncSession,
+    expire_on_commit=False,
 )
 
 Base = declarative_base()
@@ -27,10 +32,7 @@ from app.models.load_line import LoadLine  # noqa
 from app.models.load_case_template import LoadCaseTemplate  # noqa
 
 
-def get_db():
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """Dependency for FastAPI to get database session."""
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+    async with AsyncSessionLocal() as session:
+        yield session

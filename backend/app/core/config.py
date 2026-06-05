@@ -1,17 +1,17 @@
 """Application configuration."""
 
-import os
 from pathlib import Path
 from pydantic_settings import BaseSettings
 
 # Корень проекта (папка, где находится backend)
 BASE_DIR = Path(__file__).parent.parent.parent
 
+
 class Settings(BaseSettings):
     """Application settings loaded from .env file."""
 
-    # Database - используем простой относительный путь
-    database_url: str = f"sqlite:///{BASE_DIR / 'data' / 'ship_load.db'}"
+    # Database (асинхронный SQLite с aiosqlite)
+    database_url: str = f"sqlite+aiosqlite:///{BASE_DIR / 'data' / 'ship_load.db'}"
 
     # Application
     environment: str = "development"
