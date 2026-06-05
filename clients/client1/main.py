@@ -1,14 +1,10 @@
-"""Client 1: Designer - entry point."""
-
 import sys
-from PySide6.QtWidgets import QApplication, QLabel, QMainWindow
+import os
 
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-class MainWindow(QMainWindow):
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle("Ship Load Designer")
-        self.setCentralWidget(QLabel("Client 1 - Конструктор\n(в разработке)"))
+from PySide6.QtWidgets import QApplication
+from client1.main_window import MainWindow
 
 
 def main():

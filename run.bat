@@ -21,9 +21,9 @@ goto help
     )
     call venv\Scripts\activate
     pip install --upgrade pip
+    pip install -r backend\requirements.txt
     pip install -r backend\requirements-dev.txt
-    pip install -r clients\client1\requirements.txt
-    pip install -r clients\client2\requirements.txt
+    pip install PySide6 httpx
     pre-commit install
     echo Done.
     goto end
@@ -38,15 +38,17 @@ goto help
 :client1
     if not exist venv\ ( echo Run 'run.bat install' first & goto end )
     call venv\Scripts\activate
-    cd clients\client1
-    python main.py
+    cd /d "%PROJECT_ROOT%"
+    set PYTHONPATH=%PROJECT_ROOT%;%PROJECT_ROOT%clients
+    python clients\client1\main.py
     goto end
 
 :client2
     if not exist venv\ ( echo Run 'run.bat install' first & goto end )
     call venv\Scripts\activate
-    cd clients\client2
-    python main.py
+    cd /d "%PROJECT_ROOT%"
+    set PYTHONPATH=%PROJECT_ROOT%;%PROJECT_ROOT%clients
+    python clients\client2\main.py
     goto end
 
 :test
@@ -57,7 +59,6 @@ goto help
     goto end
 
 :init_db
-    echo Creating data directory...
     if not exist data\ mkdir data
     echo SQLite database will be created on first run
     goto end
