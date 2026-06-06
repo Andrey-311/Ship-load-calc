@@ -22,6 +22,8 @@ class ECREditWidget(QWidget):
         self.api = api
         self.project_id = project_id
         self.ecr_id = ecr_id
+        self.current_status = "draft"
+        self.rejection_reason = ""
         self.setup_ui()
         self.load_data()
 
@@ -32,8 +34,12 @@ class ECREditWidget(QWidget):
         info_layout = QFormLayout(info_group)
         self.lbl_ecr_id = QLabel(str(self.ecr_id))
         self.lbl_status = QLabel("Loading...")
+        self.lbl_rejection = QLabel("")
+        self.lbl_rejection.setStyleSheet("color: red;")
+        self.lbl_rejection.setWordWrap(True)
         info_layout.addRow("ECR ID:", self.lbl_ecr_id)
         info_layout.addRow("Status:", self.lbl_status)
+        info_layout.addRow("Rejection Reason:", self.lbl_rejection)
         layout.addWidget(info_group)
 
         self.table = LoadLineTableView()
@@ -60,14 +66,34 @@ class ECREditWidget(QWidget):
         self.table.btn_edit.clicked.connect(self.edit_line)
         self.table.btn_delete.clicked.connect(self.delete_line)
 
+    def update_buttons_by_status(self):
+        is_editable = self.current_status in ["draft", "rejected"]
+        self.table.btn_add.setEnabled(is_editable)
+        self.table.btn_edit.setEnabled(is_editable)
+        self.table.btn_delete.setEnabled(is_editable)
+        self.btn_submit.setEnabled(is_editable)
+        
+        if self.current_status == "rejected":
+            self.btn_submit.setText("Resubmit for Review")
+        else:
+            self.btn_submit.setText("Submit for Review")
+
     def load_data(self):
         try:
             lines = self.api.get_ecr_lines(self.project_id, self.ecr_id)
             self.table.setLines(lines)
 
             ecr = self.api.get_ecr(self.project_id, self.ecr_id)
-            self.lbl_status.setText(ecr.get('status', 'unknown'))
-            self.btn_submit.setEnabled(ecr.get('status') == 'draft')
+            self.current_status = ecr.get('status', 'unknown')
+            self.lbl_status.setText(self.current_status)
+            self.rejection_reason = ecr.get('rejection_reason', '')
+            if self.rejection_reason:
+                self.lbl_rejection.setText(self.rejection_reason)
+                self.lbl_rejection.setVisible(True)
+            else:
+                self.lbl_rejection.setVisible(False)
+            
+            self.update_buttons_by_status()
 
             cg = self.api.get_center_of_gravity(self.project_id, self.ecr_id)
             self.cg_label.setText(
@@ -79,6 +105,10 @@ class ECREditWidget(QWidget):
             QMessageBox.critical(self, "Error", f"Failed to load data: {e}")
 
     def add_line(self):
+        if self.current_status not in ["draft", "rejected"]:
+            QMessageBox.warning(self, "Warning", f"Cannot add line: ECR status is '{self.current_status}'")
+            return
+
         dialog = QDialog(self)
         dialog.setWindowTitle("Add Load Line")
         layout = QFormLayout(dialog)
@@ -119,10 +149,15 @@ class ECREditWidget(QWidget):
                     "z": z_spin.value()
                 })
                 self.load_data()
+                self.on_ecr_updated.emit()
             except Exception as e:
                 QMessageBox.critical(self, "Error", str(e))
 
     def edit_line(self):
+        if self.current_status not in ["draft", "rejected"]:
+            QMessageBox.warning(self, "Warning", f"Cannot edit line: ECR status is '{self.current_status}'")
+            return
+
         row = self.table.getSelectedRow()
         if row == -1:
             QMessageBox.warning(self, "Warning", "Select a line to edit")
@@ -130,6 +165,10 @@ class ECREditWidget(QWidget):
 
         line = self.table.getLine(row)
         if not line:
+            return
+
+        if 'id' not in line or line['id'] is None:
+            QMessageBox.warning(self, "Warning", "Cannot edit: line has no ID")
             return
 
         dialog = QDialog(self)
@@ -175,10 +214,15 @@ class ECREditWidget(QWidget):
                     "z": z_spin.value()
                 })
                 self.load_data()
+                self.on_ecr_updated.emit()
             except Exception as e:
                 QMessageBox.critical(self, "Error", str(e))
 
     def delete_line(self):
+        if self.current_status not in ["draft", "rejected"]:
+            QMessageBox.warning(self, "Warning", f"Cannot delete line: ECR status is '{self.current_status}'")
+            return
+
         row = self.table.getSelectedRow()
         if row == -1:
             QMessageBox.warning(self, "Warning", "Select a line to delete")
@@ -188,17 +232,27 @@ class ECREditWidget(QWidget):
                                       QMessageBox.Yes | QMessageBox.No)
         if reply == QMessageBox.Yes:
             line = self.table.getLine(row)
-            if line:
+            if line and line.get('id'):
                 try:
                     self.api.delete_load_line(self.project_id, self.ecr_id, line['id'])
                     self.load_data()
+                    self.on_ecr_updated.emit()
                 except Exception as e:
                     QMessageBox.critical(self, "Error", str(e))
 
     def submit_ecr(self):
-        reply = QMessageBox.question(self, "Confirm", 
-                                      "Submit ECR for review?",
-                                      QMessageBox.Yes | QMessageBox.No)
+        if self.current_status not in ["draft", "rejected"]:
+            QMessageBox.warning(self, "Warning", f"Cannot submit: ECR status is '{self.current_status}'")
+            return
+
+        if self.current_status == "rejected":
+            reply = QMessageBox.question(self, "Confirm", 
+                                          f"Resubmit this rejected ECR for review?\n\nPrevious rejection reason: {self.rejection_reason}",
+                                          QMessageBox.Yes | QMessageBox.No)
+        else:
+            reply = QMessageBox.question(self, "Confirm", "Submit ECR for review?",
+                                          QMessageBox.Yes | QMessageBox.No)
+        
         if reply == QMessageBox.Yes:
             try:
                 self.api.update_ecr_status(self.project_id, self.ecr_id, "review")

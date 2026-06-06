@@ -21,6 +21,20 @@ class APIClient:
         response.raise_for_status()
         return response.json()
 
+    def get_project(self, project_id: int) -> Dict:
+        response = self.client.get(self._url(f"/projects/{project_id}"))
+        response.raise_for_status()
+        return response.json()
+
+    def update_project(self, project_id: int, data: Dict) -> Dict:
+        response = self.client.put(self._url(f"/projects/{project_id}"), json=data)
+        response.raise_for_status()
+        return response.json()
+
+    def delete_project(self, project_id: int) -> bool:
+        response = self.client.delete(self._url(f"/projects/{project_id}"))
+        return response.status_code == 204
+
     # ECRs
     def get_ecr_list(self, project_id: int, status: Optional[str] = None) -> List[Dict]:
         url = self._url(f"/projects/{project_id}/ecr/")
@@ -70,7 +84,7 @@ class APIClient:
 
     def update_load_line(self, project_id: int, ecr_id: int, line_id: int, data: Dict) -> Dict:
         response = self.client.put(
-            self._url(f"/projects/{project_id}/ecr/{ecr_id}/lines/{line_id}"),
+            self._url(f"/projects/{project_id}/ecr/lines/{line_id}?ecr_id={ecr_id}"),
             json=data
         )
         response.raise_for_status()
@@ -78,7 +92,7 @@ class APIClient:
 
     def delete_load_line(self, project_id: int, ecr_id: int, line_id: int) -> bool:
         response = self.client.delete(
-            self._url(f"/projects/{project_id}/ecr/{ecr_id}/lines/{line_id}")
+            self._url(f"/projects/{project_id}/ecr/lines/{line_id}?ecr_id={ecr_id}")
         )
         return response.status_code == 204
 
@@ -122,6 +136,11 @@ class APIClient:
     # Codes
     def get_codes(self) -> List[Dict]:
         response = self.client.get(self._url("/codes/"))
+        response.raise_for_status()
+        return response.json()
+
+    def get_code(self, code: str) -> Dict:
+        response = self.client.get(self._url(f"/codes/{code}"))
         response.raise_for_status()
         return response.json()
 

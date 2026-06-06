@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 
 from common.api_client import APIClient
+from client1.ecr_edit_widget import ECREditWidget
 
 
 class MainWindow(QMainWindow):
@@ -90,9 +91,16 @@ class MainWindow(QMainWindow):
                 btn.setEnabled(True)
 
     def on_ecr_selected(self, item):
-        from client1.ecr_edit_widget import ECREditWidget
         ecr_id = int(item.text().split("#")[1].split(":")[0])
         edit_widget = ECREditWidget(self.api, self.current_project_id, ecr_id, self)
+        edit_widget.on_ecr_updated.connect(self.load_ecrs)
+
+        for i in range(self.stack.count()):
+            w = self.stack.widget(i)
+            if hasattr(w, 'ecr_id') and w.ecr_id == ecr_id:
+                self.stack.setCurrentIndex(i)
+                return
+
         self.stack.addWidget(edit_widget)
         self.stack.setCurrentWidget(edit_widget)
 
